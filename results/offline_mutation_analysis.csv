@@ -1,0 +1,21 @@
+task,mutant,case_count,changed_decisions,oracle_failures,regression_detected,status
+monitoring,mutant_explicit_deny_required,9,1,1,1,Detected by tests
+monitoring,mutant_extra_sensitive_action,9,0,0,0,No observable regression (possibly boundary-contained)
+monitoring,mutant_missing_required_action,9,1,1,1,Detected by tests
+monitoring,mutant_pooled_role,9,0,0,0,No observable regression (possibly boundary-contained)
+monitoring,mutant_wildcard_all,9,0,0,0,No observable regression (possibly boundary-contained)
+orchestration,mutant_explicit_deny_required,9,1,1,1,Detected by tests
+orchestration,mutant_extra_sensitive_action,9,0,0,0,No observable regression (possibly boundary-contained)
+orchestration,mutant_missing_required_action,9,1,1,1,Detected by tests
+orchestration,mutant_pooled_role,9,0,0,0,No observable regression (possibly boundary-contained)
+orchestration,mutant_wildcard_all,9,0,0,0,No observable regression (possibly boundary-contained)
+provisioning,mutant_explicit_deny_required,9,1,1,1,Detected by tests
+provisioning,mutant_extra_sensitive_action,9,0,0,0,No observable regression (possibly boundary-contained)
+provisioning,mutant_missing_required_action,9,1,1,1,Detected by tests
+provisioning,mutant_pooled_role,9,0,0,0,No observable regression (possibly boundary-contained)
+provisioning,mutant_wildcard_all,9,0,0,0,No observable regression (possibly boundary-contained)
+remediation,mutant_explicit_deny_required,9,1,1,1,Detected by tests
+remediation,mutant_extra_sensitive_action,9,0,0,0,No observable regression (possibly boundary-contained)
+remediation,mutant_missing_required_action,9,1,1,1,Detected by tests
+remediation,mutant_pooled_role,9,0,0,0,No observable regression (possibly boundary-contained)
+remediation,mutant_wildcard_all,9,0,0,0,No observable regression (possibly boundary-contained)

@@ -1,0 +1,80 @@
+Engine: offline cases: 252 
+[
+  {
+    "scenario": "agentiam",
+    "n": 36,
+    "legitimate_allowed": 8,
+    "legitimate_denied": 0,
+    "unauthorized_allowed": 0,
+    "unauthorized_denied": 28,
+    "accuracy": 1.0,
+    "false_allow_rate": 0.0,
+    "false_deny_rate": 0.0
+  },
+  {
+    "scenario": "baseline",
+    "n": 36,
+    "legitimate_allowed": 8,
+    "legitimate_denied": 0,
+    "unauthorized_allowed": 16,
+    "unauthorized_denied": 12,
+    "accuracy": 0.5556,
+    "false_allow_rate": 0.5714,
+    "false_deny_rate": 0.0
+  },
+  {
+    "scenario": "mutant_explicit_deny_required",
+    "n": 36,
+    "legitimate_allowed": 4,
+    "legitimate_denied": 4,
+    "unauthorized_allowed": 0,
+    "unauthorized_denied": 28,
+    "accuracy": 0.8889,
+    "false_allow_rate": 0.0,
+    "false_deny_rate": 0.5
+  },
+  {
+    "scenario": "mutant_extra_sensitive_action",
+    "n": 36,
+    "legitimate_allowed": 8,
+    "legitimate_denied": 0,
+    "unauthorized_allowed": 0,
+    "unauthorized_denied": 28,
+    "accuracy": 1.0,
+    "false_allow_rate": 0.0,
+    "false_deny_rate": 0.0
+  },
+  {
+    "scenario": "mutant_missing_required_action",
+    "n": 36,
+    "legitimate_allowed": 4,
+    "legitimate_denied": 4,
+    "unauthorized_allowed": 0,
+    "unauthorized_denied": 28,
+    "accuracy": 0.8889,
+    "false_allow_rate": 0.0,
+    "false_deny_rate": 0.5
+  },
+  {
+    "scenario": "mutant_pooled_role",
+    "n": 36,
+    "legitimate_allowed": 8,
+    "legitimate_denied": 0,
+    "unauthorized_allowed": 0,
+    "unauthorized_denied": 28,
+    "accuracy": 1.0,
+    "false_allow_rate": 0.0,
+    "false_deny_rate": 0.0
+  },
+  {
+    "scenario": "mutant_wildcard_all",
+    "n": 36,
+    "legitimate_allowed": 8,
+    "legitimate_denied": 0,
+    "unauthorized_allowed": 0,
+    "unauthorized_denied": 28,
+    "accuracy": 1.0,
+    "false_allow_rate": 0.0,
+    "false_deny_rate": 0.0
+  }
+]

@@ -1,0 +1,8 @@
+scenario,n,legitimate_allowed,legitimate_denied,unauthorized_allowed,unauthorized_denied,accuracy,false_allow_rate,false_deny_rate
+agentiam,36,8,0,0,28,1.0,0.0,0.0
+baseline,36,8,0,16,12,0.5556,0.5714,0.0
+mutant_explicit_deny_required,36,4,4,0,28,0.8889,0.0,0.5
+mutant_extra_sensitive_action,36,8,0,0,28,1.0,0.0,0.0
+mutant_missing_required_action,36,4,4,0,28,0.8889,0.0,0.5
+mutant_pooled_role,36,8,0,0,28,1.0,0.0,0.0
+mutant_wildcard_all,36,8,0,0,28,1.0,0.0,0.0

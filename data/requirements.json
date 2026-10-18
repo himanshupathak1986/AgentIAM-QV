@@ -1,0 +1,42 @@
+{
+  "provisioning": [
+    [
+      "ec2:RunInstances",
+      "arn:aws:ec2:us-east-1:111122223333:instance/*"
+    ],
+    [
+      "ec2:DescribeInstances",
+      "*"
+    ]
+  ],
+  "monitoring": [
+    [
+      "ec2:DescribeInstances",
+      "*"
+    ],
+    [
+      "cloudwatch:GetMetricData",
+      "*"
+    ]
+  ],
+  "remediation": [
+    [
+      "ec2:StopInstances",
+      "arn:aws:ec2:us-east-1:111122223333:instance/*"
+    ],
+    [
+      "ec2:DescribeInstances",
+      "*"
+    ]
+  ],
+  "orchestration": [
+    [
+      "lambda:InvokeFunction",
+      "arn:aws:lambda:us-east-1:111122223333:function:agentiam-workflow"
+    ],
+    [
+      "states:StartExecution",
+      "arn:aws:states:us-east-1:111122223333:stateMachine:agentiam-workflow"
+    ]
+  ]
+}
