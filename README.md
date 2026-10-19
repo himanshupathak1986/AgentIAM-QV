@@ -1,84 +1,105 @@
-# AgentIAM: Independent Authorization Oracle and Mutation Experiments
+# AgentIAM-QV: Software Quality Verification for Task-Scoped AI-Agent Authorization
 
-## Evidence status
+A reproducible **offline policy-model experiment** evaluating authorization correctness, regression testing, permission boundaries, and injected IAM-policy defects for four autonomous-agent workflows.
 
-- `results/offline_*` are **local deterministic model checks**, NOT AWS observations and NOT production data.
-- `results/aws_*` do not exist until a researcher runs the AWS policy simulator with valid credentials.
-- Input requirements and IAM policy JSON are authored research fixtures, NOT observational data. Their design choices materially affect reported effect sizes.
-- AWS IAM **SimulateCustomPolicy** evaluates permission decisions only; it does not execute EC2/Lambda/S3 actions, validate STS issuance, prove CloudTrail audit coverage, or model all live authorization conditions. AWS warns simulator results can differ from real deployment.
+> **Evidence status (October 18, 2026):** The results below were produced by running a deterministic Python evaluator against researcher-authored **synthetic** test cases and policies. They are **not** outputs from the AWS IAM Policy Simulator, deployed AWS infrastructure, CloudTrail, or real production workloads. No AWS account is needed to reproduce them.
 
-## How cases were collected
+## Research question
 
-The `data/requirements.json` file is a manually specified, independent task-to-allowed-API map (4 tasks, 2 intended permissions per task). `scripts/build.py` expands it against a fixed universe of 9 candidate action/resource combinations into `data/oracle.csv` (36 rows: 8 expected allow, 28 expected deny). It *does not* infer expected outcomes from the IAM policy files. All cases are synthetic research fixtures, so do not call them actual incident observations.
+Can independent expected-authorization specifications and mutation-based regression testing detect policy defects, while task-scoped permission boundaries prevent unintended access in a controlled AI-agent authorization model?
 
-`build.py` also constructs task-specific IAM identity and boundary documents, an intentionally overprivileged pooled-role baseline, and five mutants per task: pooled role, extra sensitive action, removal of necessary permission, explicit deny, and wildcard permission.
+This is a software-quality evaluation of **functional correctness, regression behavior, and defect observability**, not a measurement of source-code complexity or live-cloud performance.
 
-## Reproduction (offline)
+## Experiment design
 
-```sh
+1. **Independent oracle:** `data/requirements.json` defines allowed operations for provisioning, monitoring, remediation, and orchestration. `scripts/build.py` creates `data/oracle.csv` from those requirements, rather than inferring expected results from the policies being tested.
+2. **Test cases:** Four workflows × nine candidate action/resource combinations = **36 cases** (8 expected allows and 28 expected denies).
+3. **Configurations:** Compare an **intentionally overprivileged shared-role baseline** with the **task-scoped AgentIAM policy plus permission boundary**.
+4. **Controlled mutations:** Generate five mutant types per workflow (pooled role, extra sensitive action, missing required action, explicit denial of a required action, and wildcard permissions), totaling **20 mutated policies**.
+5. **Evaluation:** Run the local allow/deny evaluator across seven configurations for each of the 36 cases (**252 authorization decisions**). Compare each decision against the independent oracle and examine mutant outcomes.
+
+All policy files and cases are research fixtures, not observational records from AWS.
+
+## Reproduce the experiment locally
+
+From the root of this repository, using Python 3.9 or later:
+
+```bash
 python3 scripts/build.py
 python3 scripts/run.py --engine offline
+python3 scripts/analyze_mutations.py
+python3 -m pip install matplotlib
+python3 scripts/make_figures.py
 ```
 
-The offline engine is an intentionally small allow/deny matcher for these simplified research fixtures; **it is not an implementation of AWS IAM and cannot validate AWS behavior**. In this generated fixture, the common boundary masks three overpermission mutants and two permission-removal mutants produce test failures. A masked mutant still represents a policy-maintenance problem and should be reported separately rather than ignored.
+The commands rebuild the synthetic oracle and policy fixtures, execute local checks, analyze mutant behavior, and regenerate figures from CSV outputs. An AWS account or credentials are **not needed** for these steps.
 
-## AWS evaluation
+## Input data and generated outputs
 
-Prerequisites: Python 3.9+, `pip install boto3`, configured AWS credentials with the **iam:SimulateCustomPolicy** permission; local network access. The service may require permission to use the simulator, but no cloud infrastructure provisioning is necessary.
+| Path | What it contains |
+|---|---|
+| [`data/requirements.json`](data/requirements.json) | Authored task-to-permission expectations |
+| [`data/oracle.csv`](data/oracle.csv) | 36 independent expected allow/deny decisions |
+| [`policies/`](policies/) | Baseline, task-scoped, boundary, and mutated JSON policies |
+| [`results/offline_decisions.csv`](results/offline_decisions.csv) | All 252 case-level model decisions |
+| [`results/offline_summary.csv`](results/offline_summary.csv) | Per-configuration true/false allow/deny counts and rates |
+| [`results/offline_mutation_analysis.csv`](results/offline_mutation_analysis.csv) | Per-mutant observed decision/regression outcomes |
+| [`figures/`](figures/) | Reproducible PNG, SVG, and PDF plots |
 
-```sh
+## Results of the executed offline experiment
+
+| Configuration | Accuracy | Unauthorized requests incorrectly allowed |
+|---|---:|---:|
+| Overprivileged shared-role baseline | 55.56% | 16/28 (57.14%) |
+| AgentIAM + permission boundary | 100% | 0/28 (0%) |
+
+Each configuration uses the same **36 authored cases**. Both allowed all eight legitimate requests. The AgentIAM result applies **only to the tested fixtures**, and the baseline was deliberately configured to overgrant permissions; this is not a general comparison with real-world IAM deployments.
+
+**Mutation outcomes:** **8/20** mutated policies produced observable authorization regressions (four missing-permission and four explicit-deny variants). **12/20** produced no changed decisions in the tested cases, because the permission boundary masked the introduced overpermissions. An unchanged decision is **not** proof that the underlying policy is defect-free, and 8/20 should **not** be presented as a generalized mutation score without adjudicating equivalent and masked mutants.
+
+### Figure 1 — Authorization accuracy and false-allow rate
+
+![Offline authorization comparison](figures/offline_authorization_comparison.png)
+
+[View SVG](figures/offline_authorization_comparison.svg) · [View publication PDF](figures/offline_authorization_comparison.pdf)
+
+### Figure 2 — Authorization policy mutation outcomes
+
+![Offline policy mutation outcomes](figures/offline_mutation_outcomes.png)
+
+[View SVG](figures/offline_mutation_outcomes.svg) · [View publication PDF](figures/offline_mutation_outcomes.pdf)
+
+The two PNG images above are **embedded within this README**: GitHub displays them automatically using the files already in `figures/`. The graphics are generated from the offline CSV results rather than AWS responses.
+
+## Evaluation metrics
+
+For each independently expected authorization decision:
+
+- **TP:** legitimate request allowed; **FN:** legitimate request denied.
+- **FP:** unauthorized request allowed; **TN:** unauthorized request denied.
+- **Accuracy** = (TP + TN) / (TP + TN + FP + FN).
+- **False-allow rate** = FP / (FP + TN).
+- **False-deny rate** = FN / (TP + FN).
+- **Observed mutant regression:** a changed policy produces at least one decision that disagrees with the oracle. **Boundary containment** is reported separately; it may prevent an authorization error while still leaving an overpermissive underlying identity policy.
+
+## Limitations and publication guidance
+
+The local evaluator is a deliberately small allow/deny matcher and **does not implement the full AWS IAM engine**. These small, deterministic, researcher-selected policies and scenarios cannot establish external validity, production-grade security, real AWS evaluation outcomes, STS credential correctness, CloudTrail completeness, or performance. The weak baseline magnifies the contrast and must be disclosed. Independent review of the oracle, more realistic baseline policies, policy conditions and resource constraints, expanded mutations, and a separate authorization engine are recommended before stronger claims.
+
+For a paper, call this a **preliminary offline policy-model software-quality evaluation**. Do not describe the results as AWS-measured, production-derived, or evidence of a broadly validated defect-detection rate.
+
+## Optional future AWS evaluation (not yet executed)
+
+If AWS access is later available and permitted, the runner supports the official AWS policy simulator:
+
+```bash
+python3 -m pip install boto3
 aws sts get-caller-identity
 python3 scripts/run.py --engine aws
 ```
 
-Output files are `results/aws_decisions.csv` and `results/aws_summary.csv`. `aws_decisions.csv` retains AWS decision strings and missing-context flags. Check the `missing_context_values` field; if nonempty, do not interpret that response as conclusive. Check policy/resource compatibility, resource scoping, and whether your organization's policies affect desired live deployment. AWS returns `allowed`, `implicitDeny`, or `explicitDeny`, the latter two being counted as denied for the confusion matrix. **No dangerous operations are executed by these simulator calls**.
+The intended output files are `results/aws_decisions.csv` and `results/aws_summary.csv`. Review returned decisions, missing-context values, and action/resource compatibility before interpreting them. The AWS simulator does not execute underlying cloud operations or prove deployed security. See [AWS IAM SimulateCustomPolicy documentation](https://docs.aws.amazon.com/cli/latest/reference/iam/simulate-custom-policy.html).
 
-If using AWS service-specific action/resources that require multiple resource types for actual operation, policy simulation with a single resource ARN may not fully characterize live authorization. Add real configuration-specific test cases and authorized environment tests before generalizing.
+## Reproducibility and use
 
-## Metrics and formulas
-
-For the independent expected allow/deny oracle, TP=valid allowed, FN=valid denied, FP=invalid allowed, TN=invalid denied.
-- False-allow rate = FP / (FP + TN)
-- False-deny rate = FN / (TP + FN)
-- Accuracy = (TP + TN) / N
-- Mutation **test detection**: mutants whose observed decision differs from expected oracle; **boundary containment**: overly permissive identity-policy mutants remaining denied by the boundary. Report these separately.
-
-## Scientific limitations
-
-This is a deterministic, small, researcher-designed benchmark, not a random sample of real-world workloads. The baseline is intentionally weak (pooled permissions) and is not representative of all traditional IAM designs. Input fixtures, desired outcomes, and mutations are all disclosed. The offline check uses a narrow action/resource matching subset. The use of the independent requirement oracle reduces direct circularity, but does not ensure external validity. Neither simulated nor offline results establish causal security improvements in AWS production. For a peer-reviewed contribution, extend the benchmark using real documented policies (with sensitive data removed), independent review of expected authorization, harder conditions/resource constraints, larger mutation operators and multiple baselines, then preserve untouched AWS simulator JSON responses.
-
-## Manuscript placement
-
-Section 6.3, *Software Quality Verification through Authorization Regression Testing*, after Section 6.2. **Do not place the offline results in the manuscript as AWS evidence.** Only describe executed AWS results when `aws_decisions.csv` is produced and examined.
-
-## Official AWS docs
-
-https://docs.aws.amazon.com/cli/latest/reference/iam/simulate-custom-policy.html
-https://docs.aws.amazon.com/IAM/latest/APIReference/API_SimulatePrincipalPolicy.html
-
-## Executed study results and per-mutant data
-
-Read [`EXPERIMENT_REPORT.md`](EXPERIMENT_REPORT.md) for verified offline counts, caveats and reproduction steps. The per-mutant offline results are in `results/offline_mutation_analysis.csv`; regenerate using `python3 scripts/analyze_mutations.py`. These results are model-based and **must not** be presented as AWS IAM API responses.
-
-## Publication-ready offline figures and compact paper table
-
-The figure-generation script reads the actual CSV outputs (rather than embedding outcome numbers):
-
-```sh
-python3 scripts/analyze_mutations.py
-python3 scripts/make_figures.py
-```
-
-- [`figures/offline_authorization_comparison.png`](figures/offline_authorization_comparison.png): comparison of authorization accuracy and unauthorized false-allow rate.
-- [`figures/offline_mutation_outcomes.png`](figures/offline_mutation_outcomes.png): 8 mutations with observable regressions versus 12 without decision changes.
-- Corresponding `.svg` and `.pdf` files offer vector graphics for paper production.
-- All visuals describe only the **simplified offline policy model**, not AWS IAM or a production deployment. Mutation non-detection does not mean a test confirmed the mutated policy is safe.
-
-**Compact manuscript table:**
-
-| Configuration | Accuracy | False allows |
-|:--|--:|--:|
-| Shared-role baseline | 55.56% | 16/28 |
-| AgentIAM + boundary | 100% | 0/28 |
-
-*Table note: 36 offline authorization cases per configuration; researcher-defined fixtures. Separate mutation tests produced observable authorization regressions for 8/20 mutants.*
+The source, requirements, policies, decisions, analysis, and figures are provided to enable independent reproduction and extension. Reproducibility of these **offline model results** does not itself establish real-world impact or applicability to AWS production systems.
